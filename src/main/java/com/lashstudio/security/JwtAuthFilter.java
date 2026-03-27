@@ -28,17 +28,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain         chain
     ) throws ServletException, IOException {
 
-        // LOG 1: Ver que el filtro se está ejecutando
-        System.out.println("🔍 JwtAuthFilter ejecutándose para: " + request.getRequestURI());
+        String path = request.getRequestURI();
+        System.out.println("🔍 JwtAuthFilter ejecutándose para: " + path);
+        
+        // Allow public endpoints
+        if (path.startsWith("/api/auth/") || 
+            path.startsWith("/api/clientes/register") || 
+            path.startsWith("/api/debug/")) {
+            System.out.println("📢 Endpoint público, continuando sin autenticación");
+            chain.doFilter(request, response);
+            return;
+        }
         
         String authHeader = request.getHeader("Authorization");
-        
-        // LOG 2: Ver si llega el header
         System.out.println("📋 Authorization header: " + (authHeader != null ? authHeader.substring(0, Math.min(authHeader.length(), 50)) : "null"));
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("⚠️ No hay token Bearer, continuando sin autenticación");
-            chain.doFilter(request, response);
+            System.out.println("⚠️ No hay token Bearer, retornando 401");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"No authorization token provided\"}");
             return;
         }
 
@@ -62,14 +71,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("✅ Autenticación establecida correctamente para: " + username);
+                    System.out.println("✅✅✅ Autenticación ESTABLECIDA para: " + username);
+                    System.out.println("🎭 Authorities en contexto: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
                 } else {
                     System.out.println("❌ Token inválido para: " + username);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Invalid token\"}");
+                    return;
                 }
             }
         } catch (Exception e) {
             System.out.println("❌ ERROR procesando token: " + e.getMessage());
             e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token processing error: " + e.getMessage() + "\"}");
+            return;
         }
 
         chain.doFilter(request, response);

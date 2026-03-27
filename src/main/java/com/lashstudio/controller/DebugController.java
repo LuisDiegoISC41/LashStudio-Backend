@@ -1,6 +1,8 @@
 package com.lashstudio.controller;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,31 +16,32 @@ import org.springframework.web.bind.annotation.RestController;
 public class DebugController {
 
     @GetMapping("/public-test")
-    public ResponseEntity<?> publicTest() {
-        return ResponseEntity.ok(Map.of(
-            "status", "OK",
-            "message", "Public endpoint works",
-            "timestamp", System.currentTimeMillis()
-        ));
+    public ResponseEntity<Map<String, Object>> publicTest() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("message", "Public endpoint works");
+        response.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/auth-check")
-    public ResponseEntity<?> authCheck(Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> authCheck(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of(
-                "authenticated", false,
-                "message", "Not authenticated"
-            ));
+            response.put("authenticated", false);
+            response.put("message", "Not authenticated");
+            return ResponseEntity.status(401).body(response);
         }
         
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return ResponseEntity.ok(Map.of(
-            "authenticated", true,
-            "username", userDetails.getUsername(),
-            "roles", userDetails.getAuthorities().stream()
-                .map(a -> a.getAuthority())
-                .toList(),
-            "message", "Authentication successful"
-        ));
+        response.put("authenticated", true);
+        response.put("username", userDetails.getUsername());
+        response.put("roles", userDetails.getAuthorities().stream()
+            .map(a -> a.getAuthority())
+            .collect(Collectors.toList()));
+        response.put("message", "Authentication successful");
+        
+        return ResponseEntity.ok(response);
     }
 }

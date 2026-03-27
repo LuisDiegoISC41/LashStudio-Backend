@@ -30,7 +30,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    @Value("${app.cors.allowed-origins:http://localhost:5173,https://your-frontend.onrender.com}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,https://lash-studio-tau.vercel.app,https://lash-studio-hykj.vercel.app}")
     private String allowedOrigins;
 
     @Bean
@@ -40,13 +40,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Permitir preflight
+                // Permitir preflight OPTIONS requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
                 // Rutas públicas
                 .requestMatchers("/", "/api/auth/**", "/api/clientes/register").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/servicios/**").permitAll()
-                .requestMatchers("/api/debug/**").permitAll()  // ← ADD DEBUG ENDPOINTS
+                .requestMatchers("/api/debug/**").permitAll()
                 
                 // 🔒 El resto requiere autenticación
                 .anyRequest().authenticated()
@@ -58,26 +58,28 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+        CorsConfiguration configuration = new CorsConfiguration();
         
-        // Parse allowed origins with better error handling
-        List<String> origins;
-        if (allowedOrigins == null || allowedOrigins.trim().isEmpty()) {
-            // Default for development
-            origins = Arrays.asList("http://localhost:5173", "http://localhost:3000");
-        } else {
-            origins = Arrays.asList(allowedOrigins.split(","));
-        }
+        // Parse allowed origins
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
         
-        config.setAllowedOrigins(origins);
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-        config.setExposedHeaders(Arrays.asList("Authorization"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
-
+        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "Accept", 
+            "X-Requested-With",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

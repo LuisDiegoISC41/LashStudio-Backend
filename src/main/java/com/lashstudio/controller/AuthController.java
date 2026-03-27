@@ -1,7 +1,6 @@
 package com.lashstudio.controller;
 
 import com.lashstudio.dto.LoginRequest;
-import com.lashstudio.dto.LoginResponse;
 import com.lashstudio.entity.Admin;
 import com.lashstudio.entity.Cliente;
 import com.lashstudio.repository.AdminRepository;
