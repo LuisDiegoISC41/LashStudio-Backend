@@ -28,9 +28,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;  // ← DESCOMENTAR ESTO
+    private final JwtAuthFilter jwtAuthFilter;
 
-    @Value("${app.cors.allowed-origins}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,https://your-frontend.onrender.com}")
     private String allowedOrigins;
 
     @Bean
@@ -46,11 +46,12 @@ public class SecurityConfig {
                 // Rutas públicas
                 .requestMatchers("/", "/api/auth/**", "/api/clientes/register").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/servicios/**").permitAll()
+                .requestMatchers("/api/debug/**").permitAll()  // ← ADD DEBUG ENDPOINTS
                 
                 // 🔒 El resto requiere autenticación
-                .anyRequest().authenticated()  // ← CAMBIAR a authenticated()
+                .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);  // ← DESCOMENTAR
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -58,10 +59,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        
+        // Parse allowed origins with better error handling
+        List<String> origins;
+        if (allowedOrigins == null || allowedOrigins.trim().isEmpty()) {
+            // Default for development
+            origins = Arrays.asList("http://localhost:5173", "http://localhost:3000");
+        } else {
+            origins = Arrays.asList(allowedOrigins.split(","));
+        }
+        
         config.setAllowedOrigins(origins);
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setExposedHeaders(Arrays.asList("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 

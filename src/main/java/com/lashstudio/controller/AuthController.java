@@ -16,10 +16,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-//@CrossOrigin(origins = "${app.cors.allowed-origins}")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -56,10 +58,25 @@ public class AuthController {
                 id     = cliente.getId().toString();
             }
 
-            return ResponseEntity.ok(new LoginResponse(token, role, correo, nombre, id));
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", role);
+            response.put("correo", correo);
+            response.put("nombre", nombre);
+            response.put("id", id);
+            
+            return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Credenciales incorrectas.");
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Credenciales incorrectas");
+            error.put("message", "Correo o contraseña inválidos");
+            return ResponseEntity.status(401).body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error interno");
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(error);
         }
     }
 }
