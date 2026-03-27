@@ -29,12 +29,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        System.out.println("🔍 JwtAuthFilter ejecutándose para: " + path);
+        String method = request.getMethod();
+        System.out.println("🔍 JwtAuthFilter ejecutándose para: " + method + " " + path);
         
         // Allow public endpoints
         if (path.startsWith("/api/auth/") || 
             path.startsWith("/api/clientes/register") || 
-            path.startsWith("/api/debug/")) {
+            path.startsWith("/api/debug/") ||
+            (method.equals("GET") && path.startsWith("/api/servicios"))) {  // ← AGREGAR ESTA LÍNEA
             System.out.println("📢 Endpoint público, continuando sin autenticación");
             chain.doFilter(request, response);
             return;
