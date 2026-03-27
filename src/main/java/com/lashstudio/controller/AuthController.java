@@ -62,15 +62,4 @@ public class AuthController {
             return ResponseEntity.status(401).body("Credenciales incorrectas.");
         }
     }
-    @GetMapping("/verify")
-    public ResponseEntity<?> verify(Authentication auth) {
-        if (auth == null) {
-            return ResponseEntity.status(401).body(Map.of("authenticated", false));
-        }
-        return ResponseEntity.ok(Map.of(
-            "authenticated", true,
-            "username", auth.getName(),
-            "roles", auth.getAuthorities().stream().map(a -> a.getAuthority()).toList()
-        ));
-    }
 }
