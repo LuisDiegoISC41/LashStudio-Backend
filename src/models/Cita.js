@@ -18,21 +18,22 @@ const Cita = sequelize.define('Cita', {
         allowNull: false,
         field: 'Hora'
     },
-    // ✅ DEFINICIÓN EXPLÍCITA DE LLAVES FORÁNEAS
+    // Definimos las columnas de unión exactamente como están en la DB
     idCliente: {
         type: DataTypes.UUID,
-        allowNull: false,
-        field: 'ID_Cliente'
+        field: 'ID_Cliente',
+        references: { model: 'cliente', key: 'ID_Cliente' }
     },
     idServicio: {
         type: DataTypes.UUID,
-        allowNull: false,
-        field: 'ID_Servicio'
+        field: 'ID_Servicio',
+        references: { model: 'servicio', key: 'ID_Servicio' }
     }
 }, {
-    tableName: 'cita',
+    tableName: 'cita', // <--- Asegúrate que en Render la tabla sea 'cita' (singular)
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    underscored: false
 });
 
 module.exports = Cita;
