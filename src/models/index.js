@@ -4,14 +4,34 @@ const Cliente = require('./Cliente');
 const Servicio = require('./Servicio');
 const Cita = require('./Cita');
 
-// --- Configurar Asociaciones (Relaciones) ---
-// Si una Cita pertenece a un Cliente y a un Servicio:
-if (Cita.associate) {
-    Cita.belongsTo(Cliente, { foreignKey: 'clienteId', as: 'cliente' });
-    Cita.belongsTo(Servicio, { foreignKey: 'servicioId', as: 'servicio' });
-}
 
-// Exportamos todo en un solo objeto
+Cita.belongsTo(Cliente, { 
+    foreignKey: 'idCliente', // Esto buscará la columna mapeada a 'ID_Cliente'
+    as: 'cliente'            // Alias para: include: [{ model: Cliente, as: 'cliente' }]
+});
+
+// Un Cliente puede tener muchas Citas
+Cliente.hasMany(Cita, { 
+    foreignKey: 'idCliente', 
+    as: 'citas' 
+});
+
+Cita.belongsTo(Servicio, { 
+    foreignKey: 'idServicio', // Esto buscará la columna mapeada a 'ID_Servicio'
+    as: 'servicio'            // Alias para: include: [{ model: Servicio, as: 'servicio' }]
+});
+
+// Un Servicio puede estar en muchas Citas
+Servicio.hasMany(Cita, { 
+    foreignKey: 'idServicio', 
+    as: 'citas' 
+});
+
+/**
+ * EXPORTACIÓN DE MODELOS
+ * Exportamos todo en un solo objeto para que en los controladores
+ * podamos hacer: const { Cita, Cliente, Servicio } = require('../models');
+ */
 module.exports = {
     sequelize,
     Admin,

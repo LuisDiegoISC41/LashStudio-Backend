@@ -9,7 +9,9 @@ async function startServer() {
     try {
         await sequelize.authenticate();
         console.log('✅ DB Conectada');
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ alter: true }); 
+        console.log("✅ Estructura de tablas actualizada en Render");
+
         await initializeData();
         app.listen(PORT, () => console.log(`🚀 Puerto: ${PORT}`));
     } catch (e) {
