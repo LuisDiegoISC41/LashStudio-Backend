@@ -1,18 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { Cita, Cliente, Servicio } = require('../models'); // Importar modelos
-const { Op } = require('sequelize'); // Operadores para filtros de fecha
-const { authenticateToken } = require('../middlewares/auth'); // Middleware de seguridad
+const { Cita, Cliente, Servicio } = require('../models'); 
+const { Op } = require('sequelize'); 
+const { authenticateToken } = require('../middlewares/auth'); 
 
 /** * Citas del día — usuario autenticado 
- * @GetMapping
  */
 router.get('/', authenticateToken, async (req, res) => {
     try {
-        const { fecha } = req.query; // Espera "YYYY-MM-DD"
+        const { fecha } = req.query; 
         const citas = await Cita.findAll({
             where: { fecha },
-            include: ['cliente', 'servicio'] // Carga datos relacionados
+            include: [
+                { model: Cliente, as: 'cliente' },
+                { model: Servicio, as: 'servicio' }
+            ]
         });
         res.json(citas);
     } catch (error) {
@@ -20,35 +22,46 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-/** * Citas de un mes completo — usuario autenticado (calendario)
- * @GetMapping("/mes")
+/** * Citas de un mes completo — Calendario blindado
  */
 router.get('/mes', authenticateToken, async (req, res) => {
     try {
-        const { mes } = req.query; // Espera "YYYY-MM"
-        const start = `${mes}-01`;
-        const end = `${mes}-31`; // Sequelize es flexible con el fin de mes
+        const { mes } = req.query; // Ejemplo: "2026-04"
+        if (!mes) return res.status(400).json({ error: "El parámetro mes es requerido" });
+
+        // Separamos el año y el mes para calcular el último día real
+        const [year, month] = mes.split('-').map(Number);
+        const start = `${year}-${month.toString().padStart(2, '0')}-01`;
+        
+        // El día 0 del mes siguiente nos devuelve el último día del mes actual
+        const ultimoDia = new Date(year, month, 0).getDate();
+        const end = `${year}-${month.toString().padStart(2, '0')}-${ultimoDia}`;
 
         const citas = await Cita.findAll({
             where: {
                 fecha: { [Op.between]: [start, end] }
             },
-            include: ['cliente', 'servicio']
+            include: [
+                { model: Cliente, as: 'cliente' },
+                { model: Servicio, as: 'servicio' }
+            ],
+            order: [['fecha', 'ASC'], ['hora', 'ASC']]
         });
+
         res.json(citas);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error en calendario:", error.message);
+        res.status(500).json({ message: "Error al cargar el calendario: " + error.message });
     }
 });
 
 /** * Todas las citas de un cliente
- * @GetMapping("/cliente/:id")
  */
 router.get('/cliente/:id', authenticateToken, async (req, res) => {
     try {
         const citas = await Cita.findAll({
             where: { idCliente: req.params.id },
-            include: ['servicio']
+            include: [{ model: Servicio, as: 'servicio' }]
         });
         res.json(citas);
     } catch (error) {
@@ -56,20 +69,17 @@ router.get('/cliente/:id', authenticateToken, async (req, res) => {
     }
 });
 
-/** * Reservar cita — usuario autenticado 
- * @PostMapping
+/** * Reservar cita
  */
 router.post('/', authenticateToken, async (req, res) => {
     try {
         const { fecha, hora, idCliente, idServicio } = req.body;
 
-        // Validar disponibilidad (existsByFechaAndHora)
         const ocupado = await Cita.findOne({ where: { fecha, hora } });
         if (ocupado) {
             return res.status(400).send("Horario no disponible.");
         }
 
-        // Crear cita
         const nuevaCita = await Cita.create({
             fecha,
             hora,
@@ -83,8 +93,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-/** * Reagendar cita — usuario autenticado 
- * @PutMapping("/{id}")
+/** * Reagendar cita
  */
 router.put('/:id', authenticateToken, async (req, res) => {
     try {
@@ -94,12 +103,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
         const cita = await Cita.findByPk(id);
         if (!cita) return res.status(404).send("Cita no encontrada");
 
-        // Validar disponibilidad ignorando la cita actual (existsByFechaAndHoraAndIdNot)
         const ocupado = await Cita.findOne({
             where: {
                 fecha,
                 hora,
-                id: { [Op.ne]: id } // "ne" significa Not Equal
+                id: { [Op.ne]: id } 
             }
         });
 
@@ -115,8 +123,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-/** * Cancelar cita — admin o dueño de la cita 
- * @DeleteMapping("/{id}")
+/** * Cancelar cita
  */
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
@@ -127,9 +134,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         if (!cita) return res.status(404).send("Cita no encontrada");
 
-        // Lógica de seguridad idéntica a tu Java:
-        const isAdmin = req.user.role === 'admin';
-        const isOwner = cita.cliente.correo === req.user.correo;
+        // Normalizamos el rol a mayúsculas para comparar con ADMIN
+        const isAdmin = req.user.role.toUpperCase() === 'ADMIN';
+        const isOwner = cita.cliente && (cita.cliente.Correo === req.user.correo || cita.cliente.correo === req.user.correo);
 
         if (!isAdmin && !isOwner) {
             return res.status(403).json({ message: "No tienes permiso para cancelar esta cita" });
