@@ -9,7 +9,7 @@ async function startServer() {
     try {
         await sequelize.authenticate();
         console.log('✅ DB Conectada');
-        await sequelize.sync({ alter: false });
+        await sequelize.sync({ alter: true });
         await initializeData();
         app.listen(PORT, () => console.log(`🚀 Puerto: ${PORT}`));
     } catch (e) {
