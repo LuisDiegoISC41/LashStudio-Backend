@@ -9,24 +9,26 @@ const Cita = sequelize.define('Cita', {
         field: 'ID_Cita'
     },
     fecha: {
-        type: DataTypes.DATEONLY, // DATEONLY equivale a LocalDate (solo fecha)
+        type: DataTypes.DATEONLY,
+        allowNull: false,
         field: 'Fecha'
     },
     hora: {
-        type: DataTypes.TIME, // TIME equivale a LocalTime (solo hora)
+        type: DataTypes.TIME,
+        allowNull: false,
         field: 'Hora'
     },
-    // Las llaves foráneas se pueden declarar aquí o dejar que Sequelize las maneje
     idCliente: {
         type: DataTypes.UUID,
-        field: 'ID_Cliente'
+        field: 'ID_Cliente' // El nombre exacto en la tabla de Render
     },
     idServicio: {
         type: DataTypes.UUID,
-        field: 'ID_Servicio'
+        field: 'ID_Servicio' // El nombre exacto en la tabla de Render
     }
 }, {
     tableName: 'cita',
+    freezeTableName: true,
     timestamps: false
 });
 
