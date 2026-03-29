@@ -31,6 +31,6 @@ app.use('/api/clientes/register', clienteRoutes); // Registro
 
 // 3. RUTAS PROTEGIDAS (Con token)
 app.use('/api/citas', authenticateToken, citaRoutes);
-app.use('/api/clientes', authenticateToken, clienteRoutes);
+app.use('/api/clientes', clienteRoutes);
 
 module.exports = app;
