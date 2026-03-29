@@ -21,7 +21,7 @@ const Servicio = sequelize.define('Servicio', {
         field: 'Precio'
     }
 }, {
-    tableName: 'SERVICIO',
+    tableName: 'servicio',
     timestamps: false
 });
 

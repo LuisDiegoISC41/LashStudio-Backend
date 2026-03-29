@@ -35,7 +35,7 @@ const Admin = sequelize.define('Admin', {
     }
 }, {
     // Configuraciones adicionales
-    tableName: 'Admin', // Nombre de la tabla en la DB
+    tableName: 'admin', // Nombre de la tabla en la DB
     timestamps: false   // Si no tienes columnas 'createdAt' y 'updatedAt'
 });
 

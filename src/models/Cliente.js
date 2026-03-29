@@ -40,7 +40,7 @@ const Cliente = sequelize.define('Cliente', {
         field: 'Password'
     }
 }, {
-    tableName: 'Cliente', // Coincide con @Table(name = "Cliente")
+    tableName: 'cliente', // Coincide con @Table(name = "Cliente")
     timestamps: false    // En Java no tenías createdAt/updatedAt
 });
 

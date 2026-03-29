@@ -26,7 +26,7 @@ const Cita = sequelize.define('Cita', {
         field: 'ID_Servicio'
     }
 }, {
-    tableName: 'CITA',
+    tableName: 'cita',
     timestamps: false
 });
 
