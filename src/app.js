@@ -9,7 +9,7 @@ const citaRoutes = require('./controllers/citaController');
 
 const app = express();
 
-// 1. CORS (Configuración limpia)
+// 1. Configuración de CORS
 app.use(cors({
     origin: [
         'http://localhost:5173',
@@ -17,21 +17,20 @@ app.use(cors({
         'https://lash-studio-hykj.vercel.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
     credentials: true
 }));
 
-// 2. Middlewares base
 app.use(express.json()); 
 
-// 3. RUTAS PÚBLICAS (Van arriba para que no las bloquee el 404 o el Token)
-app.use('/api/auth', authRoutes); // Aquí está el POST /login
-app.get('/api/servicios', servicioRoutes); // Público para que carguen al inicio
-app.post('/api/clientes/register', clienteRoutes); // Registro público
+// 2. RUTAS PÚBLICAS (Sin token)
+// Usamos .use() para que el Router interno de cada controlador tome el mando
+app.use('/api/auth', authRoutes);       // Login
+app.use('/api/servicios', servicioRoutes); // GET /api/servicios (Público según tu controlador)
+app.use('/api/clientes/register', clienteRoutes); // Registro
 
-// 4. RUTAS PROTEGIDAS (Necesitan Token)
+// 3. RUTAS PROTEGIDAS (Con token)
 app.use('/api/citas', authenticateToken, citaRoutes);
 app.use('/api/clientes', authenticateToken, clienteRoutes);
-app.use('/api/admin/servicios', authenticateToken, servicioRoutes); // Para gestión de admin
 
 module.exports = app;
