@@ -1,27 +1,27 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Archivo de conexión que crearemos
+const sequelize = require('../config/database');
 
 const Admin = sequelize.define('Admin', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-        field: 'ID_Admin' // Coincide con @Column(name = "ID_Admin")
+        field: 'ID_Admin'
     },
     nombre: {
         type: DataTypes.STRING(50),
         field: 'Nombre'
     },
     apellidoPaterno: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING(50), // Subí a 50 por si hay apellidos largos
         field: 'Apellido_Paterno'
     },
     apellidoMaterno: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING(50), // Subí a 50
         field: 'Apellido_Materno'
     },
     correo: {
-        type: DataTypes.STRING(80),
+        type: DataTypes.STRING(100), // Subí a 100 por seguridad
         allowNull: false,
         unique: true,
         field: 'Correo',
@@ -30,13 +30,13 @@ const Admin = sequelize.define('Admin', {
         }
     },
     password: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(255), // <--- RECOMENDADO: 255 para el Hash de bcrypt
         field: 'Password'
     }
 }, {
-    // Configuraciones adicionales
-    tableName: 'admin', // Nombre de la tabla en la DB
-    timestamps: false   // Si no tienes columnas 'createdAt' y 'updatedAt'
+    tableName: 'admin',
+    freezeTableName: true, // <--- OBLIGA a que Sequelize use 'admin' y no 'admins'
+    timestamps: false
 });
 
 module.exports = Admin;

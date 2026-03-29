@@ -6,7 +6,7 @@ const Cliente = sequelize.define('Cliente', {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-        field: 'ID_Cliente' // Coincide con @Column(name = "ID_Cliente")
+        field: 'ID_Cliente'
     },
     nombre: {
         type: DataTypes.STRING(50),
@@ -22,11 +22,11 @@ const Cliente = sequelize.define('Cliente', {
         field: 'Apellido_Materno'
     },
     telefono: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(20), // Subí a 20 por si guardan ladas (+52)
         field: 'Telefono'
     },
     correo: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING(100), // <--- Subí de 50 a 100 para evitar errores
         allowNull: false,
         unique: true,
         field: 'Correo',
@@ -35,13 +35,14 @@ const Cliente = sequelize.define('Cliente', {
         }
     },
     password: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(255), // <--- 255 es el estándar de seguridad
         allowNull: false,
         field: 'Password'
     }
 }, {
-    tableName: 'cliente', // Coincide con @Table(name = "Cliente")
-    timestamps: false    // En Java no tenías createdAt/updatedAt
+    tableName: 'cliente', 
+    freezeTableName: true, // <--- Evita que Sequelize busque "clientes"
+    timestamps: false    
 });
 
 module.exports = Cliente;
