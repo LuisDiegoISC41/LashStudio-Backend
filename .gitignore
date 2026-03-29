@@ -1,6 +1,18 @@
+# Java / Spring Boot
 target/
 *.class
+
+# IDEs
 .idea/
 *.iml
 .vscode/
+
+# Logs
 *.log
+
+# Node.js
+node_modules/
+.env
+dist/
+build/
+coverage/
