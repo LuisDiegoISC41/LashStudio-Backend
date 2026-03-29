@@ -18,13 +18,16 @@ const Cita = sequelize.define('Cita', {
         allowNull: false,
         field: 'Hora'
     },
+    // ✅ DEFINICIÓN EXPLÍCITA DE LLAVES FORÁNEAS
     idCliente: {
         type: DataTypes.UUID,
-        field: 'ID_Cliente' // El nombre exacto en la tabla de Render
+        allowNull: false,
+        field: 'ID_Cliente'
     },
     idServicio: {
         type: DataTypes.UUID,
-        field: 'ID_Servicio' // El nombre exacto en la tabla de Render
+        allowNull: false,
+        field: 'ID_Servicio'
     }
 }, {
     tableName: 'cita',
