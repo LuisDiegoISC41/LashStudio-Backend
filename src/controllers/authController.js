@@ -56,6 +56,10 @@ router.post('/login', async (req, res) => {
             token,
             role,
             nombre: usuario.nombre,
+            apellidoPaterno: usuario.apellidoPaterno || usuario.Apellido_Paterno || "",
+            apellidoMaterno: usuario.apellidoMaterno || usuario.Apellido_Materno || "",
+            telefono: usuario.telefono || usuario.Telefono || "",
+            correo: usuario.correo,
             id: usuario.id || usuario.ID_Admin || usuario.ID_Cliente
         });
 

@@ -6,6 +6,7 @@ const authRoutes = require('./controllers/authController');
 const clienteRoutes = require('./controllers/clienteController'); 
 const servicioRoutes = require('./controllers/servicioController');
 const citaRoutes = require('./controllers/citaController');
+const adminRoutes = require('./controllers/adminController');
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use('/api/clientes/register', clienteRoutes); // Registro
 // 3. RUTAS PROTEGIDAS (Con token)
 app.use('/api/citas', authenticateToken, citaRoutes);
 app.use('/api/clientes', clienteRoutes);
+app.use('/api/admins', adminRoutes);
 
 module.exports = app;
