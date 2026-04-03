@@ -87,7 +87,15 @@ router.post('/', authenticateToken, async (req, res) => {
             idServicio
         });
 
-        res.status(201).json(nuevaCita);
+        // Incluir asociaciones para la respuesta
+        const citaConDatos = await Cita.findByPk(nuevaCita.id, {
+            include: [
+                { model: Cliente, as: 'cliente' },
+                { model: Servicio, as: 'servicio' }
+            ]
+        });
+
+        res.status(201).json(citaConDatos);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

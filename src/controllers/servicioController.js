@@ -65,6 +65,16 @@ router.delete('/:id', authenticateToken, isAdmin, async (req, res) => {
             return res.status(404).json({ message: "Servicio no encontrado" });
         }
 
+        // Verificar si hay citas asociadas a este servicio
+        const { Cita } = require('../models');
+        const citasAsociadas = await Cita.count({ where: { idServicio: id } });
+
+        if (citasAsociadas > 0) {
+            return res.status(400).json({ 
+                message: "No se puede eliminar el servicio porque tiene citas asociadas. Elimine las citas primero." 
+            });
+        }
+
         await servicio.destroy();
         res.status(204).send(); // No Content
     } catch (error) {

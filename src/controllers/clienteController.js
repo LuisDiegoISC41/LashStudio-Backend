@@ -54,7 +54,36 @@ router.post('/register', async (req, res) => {
     }
 });
 
-/** * 3. ACTUALIZAR PERFIL — Usuario autenticado 
+/** * 3. BUSCAR CLIENTES — Solo Admin
+ * Para búsqueda por nombre, apellido, correo o teléfono
+ */
+router.get('/search', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.trim().length < 2) {
+            return res.json([]);
+        }
+
+        const clientes = await Cliente.findAll({
+            where: {
+                [require('sequelize').Op.or]: [
+                    { nombre: { [require('sequelize').Op.iLike]: `%${q}%` } },
+                    { apellidoPaterno: { [require('sequelize').Op.iLike]: `%${q}%` } },
+                    { apellidoMaterno: { [require('sequelize').Op.iLike]: `%${q}%` } },
+                    { correo: { [require('sequelize').Op.iLike]: `%${q}%` } },
+                    { telefono: { [require('sequelize').Op.iLike]: `%${q}%` } }
+                ]
+            },
+            attributes: { exclude: ['password'] },
+            limit: 10
+        });
+        res.json(clientes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/** * 4. ACTUALIZAR PERFIL — Usuario autenticado 
  * Reemplaza a @PutMapping("/{id}")
  */
 router.put('/:id', authenticateToken, async (req, res) => {
