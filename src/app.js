@@ -5,7 +5,7 @@ const { authenticateToken } = require('./middlewares/auth');
 const authRoutes = require('./controllers/authController');
 const clienteRoutes = require('./controllers/clienteController'); 
 const servicioRoutes = require('./controllers/servicioController');
-const citaRoutes = require('./controllers/citaController');
+const citaRoutes = require('./controllers/CitaController');
 const adminRoutes = require('./controllers/adminController');
 
 const app = express();
