@@ -19,6 +19,11 @@ const Servicio = sequelize.define('Servicio', {
     precio: {
         type: DataTypes.INTEGER,
         field: 'Precio'
+    },
+    imagen: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'Imagen'
     }
 }, {
     tableName: 'servicio',
