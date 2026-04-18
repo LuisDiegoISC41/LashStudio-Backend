@@ -7,15 +7,18 @@ const path = require('path');
 const fs = require('fs');
 
 // Crear carpeta uploads si no existe
-const uploadsDir = path.join(__dirname, '../../uploads');
+const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('✅ Directorio uploads creado:', uploadsDir);
+} else {
+    console.log('✅ Directorio uploads ya existe:', uploadsDir);
 }
 
 // Configuración de multer para subir imágenes
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../../uploads/')); // Carpeta donde se guardarán las imágenes
+        cb(null, uploadsDir); // Carpeta donde se guardarán las imágenes
     },
     filename: (req, file, cb) => {
         // Generar nombre único para el archivo
@@ -69,6 +72,10 @@ router.get('/', async (req, res) => {
  */
 router.post('/', authenticateToken, isAdmin, upload.single('imagen'), handleMulterError, async (req, res) => {
     try {
+        console.log('➕ Creando nuevo servicio');
+        console.log('📁 Archivo recibido:', req.file ? req.file.filename : 'Ninguno');
+        console.log('📝 Datos recibidos:', req.body);
+
         const { nombre, descripcion, precio } = req.body;
         const imagen = req.file ? req.file.filename : null;
 
@@ -78,8 +85,11 @@ router.post('/', authenticateToken, isAdmin, upload.single('imagen'), handleMult
             precio: parseInt(precio),
             imagen
         });
+        
+        console.log('✅ Servicio creado exitosamente:', nuevoServicio.id);
         res.status(201).json(nuevoServicio);
     } catch (error) {
+        console.error('❌ Error creando servicio:', error);
         res.status(400).json({ message: error.message });
     }
 });
@@ -89,6 +99,10 @@ router.post('/', authenticateToken, isAdmin, upload.single('imagen'), handleMult
  */
 router.put('/:id', authenticateToken, isAdmin, upload.single('imagen'), handleMulterError, async (req, res) => {
     try {
+        console.log('🔄 Actualizando servicio:', req.params.id);
+        console.log('📁 Archivo recibido:', req.file ? req.file.filename : 'Ninguno');
+        console.log('📝 Datos recibidos:', req.body);
+
         const { id } = req.params;
         const { nombre, descripcion, precio } = req.body;
 
@@ -106,12 +120,14 @@ router.put('/:id', authenticateToken, isAdmin, upload.single('imagen'), handleMu
         // Solo actualizar imagen si se envió un archivo
         if (req.file) {
             servicio.imagen = req.file.filename;
+            console.log('🖼️ Imagen actualizada:', req.file.filename);
         }
 
         await servicio.save();
+        console.log('✅ Servicio actualizado exitosamente');
         res.json(servicio);
     } catch (error) {
-        console.error('Error actualizando servicio:', error);
+        console.error('❌ Error actualizando servicio:', error);
         res.status(500).json({ message: error.message });
     }
 });

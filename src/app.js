@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir archivos estáticos (imágenes)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); 
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'))); 
 
 // 2. RUTAS PÚBLICAS (Sin token)
 // Usamos .use() para que el Router interno de cada controlador tome el mando
