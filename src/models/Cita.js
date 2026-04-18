@@ -28,6 +28,17 @@ const Cita = sequelize.define('Cita', {
         type: DataTypes.UUID,
         field: 'ID_Servicio',
         references: { model: 'servicio', key: 'ID_Servicio' }
+    },
+    status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'confirmada',
+        field: 'Status'
+    },
+    motivo: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: 'Motivo'
     }
 }, {
     tableName: 'cita', // <--- Asegúrate que en Render la tabla sea 'cita' (singular)

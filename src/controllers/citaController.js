@@ -73,7 +73,20 @@ router.get('/cliente/:id', authenticateToken, async (req, res) => {
  */
 router.post('/', authenticateToken, async (req, res) => {
     try {
-        const { fecha, hora, idCliente, idServicio } = req.body;
+        const { fecha, hora, idCliente, idServicio, status, motivo } = req.body;
+        const isBlock = status === 'fuera';
+
+        if (!fecha || !hora) {
+            return res.status(400).send("Fecha y hora son requeridos.");
+        }
+
+        if (isBlock && req.user.role.toUpperCase() !== 'ADMIN') {
+            return res.status(403).send("No autorizado para bloquear horarios.");
+        }
+
+        if (!isBlock && (!idCliente || !idServicio)) {
+            return res.status(400).send("Cliente y servicio son requeridos.");
+        }
 
         const ocupado = await Cita.findOne({ where: { fecha, hora } });
         if (ocupado) {
@@ -83,8 +96,10 @@ router.post('/', authenticateToken, async (req, res) => {
         const nuevaCita = await Cita.create({
             fecha,
             hora,
-            idCliente,
-            idServicio
+            idCliente: isBlock ? null : idCliente,
+            idServicio: isBlock ? null : idServicio,
+            status: isBlock ? 'fuera' : 'confirmada',
+            motivo: isBlock ? motivo || null : null
         });
 
         // Incluir asociaciones para la respuesta
