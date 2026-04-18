@@ -4,11 +4,18 @@ const { Servicio } = require('../models'); // Importamos el modelo
 const { authenticateToken, isAdmin } = require('../middlewares/auth'); // Seguridad
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Crear carpeta uploads si no existe
+const uploadsDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configuración de multer para subir imágenes
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
+        cb(null, path.join(__dirname, '../../uploads/')); // Carpeta donde se guardarán las imágenes
     },
     filename: (req, file, cb) => {
         // Generar nombre único para el archivo
@@ -32,6 +39,19 @@ const upload = multer({
     }
 });
 
+// Middleware para manejar errores de multer
+const handleMulterError = (error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ message: 'La imagen no puede ser mayor a 5MB' });
+        }
+    }
+    if (error.message === 'Solo se permiten archivos de imagen') {
+        return res.status(400).json({ message: error.message });
+    }
+    next(error);
+};
+
 /** * Público — cualquiera puede ver los servicios 
  * Reemplaza a @GetMapping
  */
@@ -47,7 +67,7 @@ router.get('/', async (req, res) => {
 /** * Solo admin — Crear servicio
  * Reemplaza a @PostMapping y @PreAuthorize("hasRole('ADMIN')")
  */
-router.post('/', authenticateToken, isAdmin, upload.single('imagen'), async (req, res) => {
+router.post('/', authenticateToken, isAdmin, upload.single('imagen'), handleMulterError, async (req, res) => {
     try {
         const { nombre, descripcion, precio } = req.body;
         const imagen = req.file ? req.file.filename : null;
@@ -67,11 +87,10 @@ router.post('/', authenticateToken, isAdmin, upload.single('imagen'), async (req
 /** * Solo admin — Actualizar servicio
  * Reemplaza a @PutMapping("/{id}")
  */
-router.put('/:id', authenticateToken, isAdmin, upload.single('imagen'), async (req, res) => {
+router.put('/:id', authenticateToken, isAdmin, upload.single('imagen'), handleMulterError, async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, descripcion, precio } = req.body;
-        const imagen = req.file ? req.file.filename : null;
 
         const servicio = await Servicio.findByPk(id);
 
@@ -80,16 +99,19 @@ router.put('/:id', authenticateToken, isAdmin, upload.single('imagen'), async (r
         }
 
         // Actualizamos los campos
-        servicio.nombre = nombre || servicio.nombre;
-        servicio.descripcion = descripcion || servicio.descripcion;
-        servicio.precio = precio ? parseInt(precio) : servicio.precio;
-        if (imagen) {
-            servicio.imagen = imagen;
+        if (nombre !== undefined) servicio.nombre = nombre;
+        if (descripcion !== undefined) servicio.descripcion = descripcion;
+        if (precio !== undefined) servicio.precio = parseInt(precio);
+        
+        // Solo actualizar imagen si se envió un archivo
+        if (req.file) {
+            servicio.imagen = req.file.filename;
         }
 
         await servicio.save();
         res.json(servicio);
     } catch (error) {
+        console.error('Error actualizando servicio:', error);
         res.status(500).json({ message: error.message });
     }
 });
