@@ -74,13 +74,15 @@ router.get('/cliente/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
     try {
         const { fecha, hora, idCliente, idServicio, status, motivo } = req.body;
-        const isBlock = status === 'fuera';
+        const isBlock = typeof status === 'string' && status.toLowerCase() === 'fuera';
+        const userRole = (req.user?.role || '').toString().toUpperCase();
+        const isAdmin = userRole === 'ADMIN' || userRole === 'ROLE_ADMIN';
 
         if (!fecha || !hora) {
             return res.status(400).send("Fecha y hora son requeridos.");
         }
 
-        if (isBlock && req.user.role.toUpperCase() !== 'ADMIN') {
+        if (isBlock && !isAdmin) {
             return res.status(403).send("No autorizado para bloquear horarios.");
         }
 
