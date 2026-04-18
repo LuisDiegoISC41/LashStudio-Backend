@@ -112,6 +112,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
         res.status(201).json(citaConDatos);
     } catch (error) {
+        console.error("Error creando cita:", error);
         res.status(500).json({ message: error.message });
     }
 });

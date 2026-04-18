@@ -21,11 +21,13 @@ const Cita = sequelize.define('Cita', {
     // Definimos las columnas de unión exactamente como están en la DB
     idCliente: {
         type: DataTypes.UUID,
+        allowNull: true,
         field: 'ID_Cliente',
         references: { model: 'cliente', key: 'ID_Cliente' }
     },
     idServicio: {
         type: DataTypes.UUID,
+        allowNull: true,
         field: 'ID_Servicio',
         references: { model: 'servicio', key: 'ID_Servicio' }
     },
