@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { authenticateToken } = require('./middlewares/auth');
 
 const authRoutes = require('./controllers/authController');
@@ -25,9 +24,6 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Servir archivos estáticos (imágenes)
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'))); 
 
 // 2. RUTAS PÚBLICAS (Sin token)
 // Usamos .use() para que el Router interno de cada controlador tome el mando
